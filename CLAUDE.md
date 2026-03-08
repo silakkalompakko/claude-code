@@ -22,6 +22,22 @@ claude-code/
 ├── LICENSE.md                   # License
 ├── demo.gif                     # Product demo animation
 │
+├── .claude/                     # Claude Code session configuration
+│   └── commands/                # Global slash commands (commit-push-pr, dedupe, triage-issue)
+│
+├── .claude-plugin/              # Marketplace configuration
+│   └── marketplace.json         # Registers all 13 bundled plugins with metadata
+│
+├── .devcontainer/               # Dev container setup for Docker
+│   └── devcontainer.json        # Enforces formatOnSave, ESLint, Prettier, zsh
+│
+├── .github/                     # GitHub automation
+│   ├── workflows/               # 12 CI/CD workflows (see CI/CD section below)
+│   └── ISSUE_TEMPLATE/          # GitHub issue templates
+│
+├── .vscode/
+│   └── extensions.json          # Recommends ESLint, Prettier, GitLens, Dev Containers
+│
 ├── plugins/                     # Official Claude Code plugins
 │   ├── README.md                # Plugin system overview and installation
 │   ├── agent-sdk-dev/           # Agent SDK scaffolding and verification
@@ -137,6 +153,31 @@ Three pre-built organization settings profiles:
 
 Settings apply at different hierarchy levels; some properties (e.g. `strictKnownMarketplaces`, `allowManagedHooksOnly`) only take effect in enterprise/managed settings.
 
+## CI/CD Workflows (`.github/workflows/`)
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| `claude.yml` | `@claude` mention on issues/PRs | Main Claude Code automation (model: `claude-sonnet-4-5-20250929`) |
+| `claude-issue-triage.yml` | Issue opened | Auto-triage with labels |
+| `claude-dedupe-issues.yml` | Issue opened | Detect and mark duplicates |
+| `auto-close-duplicates.yml` | Scheduled | Close confirmed duplicates |
+| `backfill-duplicate-comments.yml` | Manual dispatch | Add missing duplicate comments |
+| `issue-lifecycle-comment.yml` | Label applied | Post nudge comments for lifecycle labels |
+| `issue-opened-dispatch.yml` | Issue opened | Dispatch to downstream workflows |
+| `lock-closed-issues.yml` | Scheduled | Lock closed issues after period |
+| `remove-autoclose-label.yml` | Issue commented | Remove autoclose label on activity |
+| `non-write-users-check.yml` | PR opened | Verify contributor permissions |
+| `log-issue-events.yml` | Various | Event logging |
+| `sweep.yml` | Scheduled | Mark stale/close inactive issues via `scripts/sweep.ts` |
+
+## Global Commands (`.claude/commands/`)
+
+These commands are available in any Claude Code session without installing a plugin:
+
+- `commit-push-pr.md` — Commit staged changes, push, and open a PR
+- `dedupe.md` — Find and close duplicate GitHub issues
+- `triage-issue.md` — Analyze and label a GitHub issue
+
 ## Key Conventions
 
 ### Documentation
@@ -150,6 +191,8 @@ Settings apply at different hierarchy levels; some properties (e.g. `strictKnown
 - Agents are markdown files in the `agents/` directory
 - Hooks must have a `hooks.json` manifest alongside the hook scripts
 - Python hooks read JSON from stdin and use exit codes 0/1/2
+- Plugin-local user settings live in `.claude/plugin-name.local.md` (gitignored) with YAML frontmatter
+- All plugins are registered in `.claude-plugin/marketplace.json` for discovery
 
 ### Git
 - Commit messages use `chore:` prefix for CHANGELOG updates
