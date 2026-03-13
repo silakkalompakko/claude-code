@@ -1,6 +1,6 @@
 {
   "name": "mcp-web-design-tools",
-  "description": "MCP servers for web design, productivity, and automation. Includes Notion (docs & tasks), Figma (design files), Puppeteer (browser automation & screenshots), Context7 (up-to-date library docs), and Sequential Thinking (structured problem solving).",
+  "description": "MCP servers for web design, productivity, and automation. Includes Notion (task & doc management), Figma (design-to-code), Playwright (browser automation & screenshots), GitHub (repo management), and Filesystem (secure file access).",
   "version": "1.0.0",
   "author": {
     "name": "Claude Code"

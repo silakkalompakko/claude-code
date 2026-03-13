@@ -5,33 +5,35 @@
     "command": "npx",
     "args": ["-y", "@notionhq/notion-mcp-server"],
     "env": {
-      "OPENAPI_MCP_HEADERS": "{\"Authorization\":\"Bearer ${NOTION_API_KEY}\",\"Notion-Version\":\"2022-06-28\"}"
+      "OPENAPI_MCP_HEADERS": "{\"Authorization\":\"Bearer ${NOTION_API_KEY}\",\"Notion-Version\":\"2025-09-03\"}"
     }
   },
 
   "figma": {
     "command": "npx",
-    "args": ["-y", "@anthropic/mcp-figma"],
+    "args": ["-y", "figma-developer-mcp", "--stdio"],
     "env": {
-      "FIGMA_ACCESS_TOKEN": "${FIGMA_ACCESS_TOKEN}"
+      "FIGMA_API_KEY": "${FIGMA_ACCESS_TOKEN}"
     }
   },
 
-  "puppeteer": {
+  "playwright": {
     "command": "npx",
-    "args": ["-y", "@anthropic/mcp-puppeteer"],
+    "args": ["-y", "@playwright/mcp@latest"],
     "env": {}
   },
 
-  "context7": {
+  "github": {
     "command": "npx",
-    "args": ["-y", "@anthropic/mcp-context7"],
-    "env": {}
+    "args": ["-y", "@modelcontextprotocol/server-github"],
+    "env": {
+      "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+    }
   },
 
-  "sequential-thinking": {
+  "filesystem": {
     "command": "npx",
-    "args": ["-y", "@anthropic/mcp-sequential-thinking"],
+    "args": ["-y", "@modelcontextprotocol/server-filesystem", "${CLAUDE_PROJECT_DIR}"],
     "env": {}
   }
 }
