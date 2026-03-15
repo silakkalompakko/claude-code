@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="LVI Kruunu – Ammattilaisen LVI-palvelut Tampereella. Putkityöt, lämpöpumput, LVI-saneeraukset. Päivystys 24/7. Soita 050 586 4771.">
+    <meta name="keywords" content="LVI Tampere, putkimies Tampere, lämpöpumppu asennus, ilmalämpöpumppu, maalämpöpumppu, putkityöt, LVI-saneeraus, LVI Kruunu">
+    <title>LVI Kruunu | Ammattilaisen LVI-palvelut Tampereella | Päivystys 24/7</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; font-size: 16px; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #1a1a2e;
+            background: #fff;
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        img { max-width: 100%; display: block; }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+
+        /* ===== CSS VARIABLES ===== */
+        :root {
+            --gold: #C8A84E;
+            --gold-light: #e8d48a;
+            --gold-dark: #a8882e;
+            --navy: #0a1628;
+            --navy-light: #162040;
+            --blue: #1e3a5f;
+            --white: #ffffff;
+            --gray-50: #f8f9fa;
+            --gray-100: #f0f2f5;
+            --gray-200: #e2e6eb;
+            --gray-400: #9ca3af;
+            --gray-600: #6b7280;
+            --gray-800: #374151;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 20px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.12);
+            --shadow-xl: 0 20px 60px rgba(0,0,0,0.15);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ===== NAVIGATION ===== */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 1rem 2rem;
+            transition: var(--transition);
+            background: transparent;
+        }
+        .nav.scrolled {
+            background: rgba(10, 22, 40, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 0.7rem 2rem;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.2);
+        }
+        .nav-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+        .nav-logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 15px rgba(200, 168, 78, 0.3);
+        }
+        .nav-logo-text {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--white);
+            letter-spacing: -0.5px;
+        }
+        .nav-logo-text span {
+            color: var(--gold);
+        }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+        .nav-links a {
+            color: rgba(255,255,255,0.85);
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+        }
+        .nav-links a:hover { color: var(--gold); }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gold);
+            transition: var(--transition);
+        }
+        .nav-links a:hover::after { width: 100%; }
+        .nav-cta {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark)) !important;
+            color: var(--navy) !important;
+            padding: 0.65rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 700 !important;
+            font-size: 0.85rem !important;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(200, 168, 78, 0.3);
+        }
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(200, 168, 78, 0.5);
+        }
+        .nav-cta::after { display: none !important; }
+
+        /* Mobile menu */
+        .mobile-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 5px;
+            z-index: 1001;
+        }
+        .mobile-toggle span {
+            width: 24px;
+            height: 2px;
+            background: var(--white);
+            transition: var(--transition);
+            border-radius: 2px;
+        }
+        .mobile-toggle.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+        .mobile-toggle.active span:nth-child(2) { opacity: 0; }
+        .mobile-toggle.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+        /* ===== HERO ===== */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            background: linear-gradient(165deg, var(--navy) 0%, var(--navy-light) 40%, var(--blue) 100%);
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 80%;
+            height: 200%;
+            background: radial-gradient(ellipse, rgba(200, 168, 78, 0.07) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            background: linear-gradient(to top, rgba(10, 22, 40, 0.8), transparent);
+            pointer-events: none;
+        }
+        .hero-grid-bg {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+        }
+        .hero-content {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 8rem 2rem 5rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(200, 168, 78, 0.15);
+            border: 1px solid rgba(200, 168, 78, 0.3);
+            color: var(--gold-light);
+            padding: 0.5rem 1.2rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .hero-badge .pulse {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+            50% { opacity: 0.8; box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+        }
+        .hero h1 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: clamp(2.5rem, 5vw, 3.8rem);
+            font-weight: 800;
+            color: var(--white);
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -1px;
+        }
+        .hero h1 .highlight {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-desc {
+            font-size: 1.15rem;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.7;
+            margin-bottom: 2.5rem;
+            max-width: 520px;
+        }
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+        }
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: var(--navy);
+            padding: 1rem 2rem;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            transition: var(--transition);
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(200, 168, 78, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 35px rgba(200, 168, 78, 0.5);
+        }
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: rgba(255,255,255,0.1);
+            color: var(--white);
+            padding: 1rem 2rem;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: var(--transition);
+            border: 1px solid rgba(255,255,255,0.2);
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-3px);
+            border-color: rgba(255,255,255,0.3);
+        }
+        .hero-stats {
+            display: flex;
+            gap: 2.5rem;
+        }
+        .hero-stat {
+            text-align: left;
+        }
+        .hero-stat-value {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--gold);
+        }
+        .hero-stat-label {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.5);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Hero right side - feature cards */
+        .hero-visual {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+        .hero-card {
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            transition: var(--transition);
+            animation: slideInRight 0.8s ease forwards;
+            opacity: 0;
+        }
+        .hero-card:nth-child(1) { animation-delay: 0.2s; }
+        .hero-card:nth-child(2) { animation-delay: 0.4s; }
+        .hero-card:nth-child(3) { animation-delay: 0.6s; }
+        .hero-card:nth-child(4) { animation-delay: 0.8s; }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .hero-card:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(-5px);
+            border-color: rgba(200, 168, 78, 0.3);
+        }
+        .hero-card-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, rgba(200, 168, 78, 0.2), rgba(200, 168, 78, 0.05));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+            border: 1px solid rgba(200, 168, 78, 0.2);
+        }
+        .hero-card-content h3 {
+            color: var(--white);
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+        .hero-card-content p {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.85rem;
+        }
+
+        /* ===== TRUST BAR ===== */
+        .trust-bar {
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-200);
+            padding: 2rem 0;
+            position: relative;
+            z-index: 3;
+        }
+        .trust-bar-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+        }
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-size: 0.9rem;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+        .trust-item-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gray-100);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+        .trust-item strong {
+            color: var(--navy);
+        }
+
+        /* ===== SECTIONS COMMON ===== */
+        .section {
+            padding: 6rem 2rem;
+        }
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--gold-dark);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 1rem;
+        }
+        .section-label::before, .section-label::after {
+            content: '';
+            width: 20px;
+            height: 2px;
+            background: var(--gold);
+        }
+        .section-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: clamp(2rem, 4vw, 2.8rem);
+            font-weight: 800;
+            color: var(--navy);
+            line-height: 1.15;
+            letter-spacing: -0.5px;
+            margin-bottom: 1rem;
+        }
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: var(--gray-600);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* ===== SERVICES ===== */
+        .services { background: var(--gray-50); }
+        .services-grid {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+        .service-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 2.5rem 2rem;
+            border: 1px solid var(--gray-200);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: var(--transition);
+        }
+        .service-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-lg);
+            border-color: transparent;
+        }
+        .service-card:hover::before { transform: scaleX(1); }
+        .service-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, rgba(200, 168, 78, 0.15), rgba(200, 168, 78, 0.05));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(200, 168, 78, 0.15);
+        }
+        .service-card h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 0.8rem;
+        }
+        .service-card p {
+            font-size: 0.92rem;
+            color: var(--gray-600);
+            line-height: 1.6;
+            margin-bottom: 1.2rem;
+        }
+        .service-features {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        .service-features li {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--gray-800);
+        }
+        .service-features li::before {
+            content: '✓';
+            color: var(--gold-dark);
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        /* ===== WHY US ===== */
+        .why-us-grid {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+        }
+        .why-card {
+            text-align: center;
+            padding: 2.5rem 1.5rem;
+            background: var(--white);
+            border-radius: var(--radius);
+            border: 1px solid var(--gray-200);
+            transition: var(--transition);
+        }
+        .why-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+        .why-icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, var(--navy), var(--blue));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 8px 25px rgba(10, 22, 40, 0.2);
+        }
+        .why-card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 0.6rem;
+        }
+        .why-card p {
+            font-size: 0.88rem;
+            color: var(--gray-600);
+            line-height: 1.6;
+        }
+
+        /* ===== PRICING ===== */
+        .pricing { background: var(--gray-50); }
+        .pricing-grid {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+        .price-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 2.5rem 2rem;
+            text-align: center;
+            border: 1px solid var(--gray-200);
+            transition: var(--transition);
+            position: relative;
+        }
+        .price-card.featured {
+            background: linear-gradient(135deg, var(--navy), var(--blue));
+            border: 2px solid var(--gold);
+            transform: scale(1.05);
+        }
+        .price-card:hover { box-shadow: var(--shadow-lg); }
+        .price-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--gray-600);
+            margin-bottom: 1rem;
+        }
+        .price-card.featured .price-label { color: var(--gold-light); }
+        .price-value {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--navy);
+            line-height: 1;
+        }
+        .price-card.featured .price-value { color: var(--white); }
+        .price-unit {
+            font-size: 1.1rem;
+            color: var(--gray-600);
+            margin-bottom: 0.5rem;
+        }
+        .price-card.featured .price-unit { color: rgba(255,255,255,0.6); }
+        .price-note {
+            font-size: 0.8rem;
+            color: var(--gray-400);
+            margin-bottom: 1.5rem;
+        }
+        .price-card.featured .price-note { color: rgba(255,255,255,0.4); }
+        .price-desc {
+            font-size: 0.9rem;
+            color: var(--gray-600);
+            line-height: 1.5;
+        }
+        .price-card.featured .price-desc { color: rgba(255,255,255,0.7); }
+        .featured-badge {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: var(--navy);
+            padding: 0.3rem 1.2rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        /* ===== REVIEWS ===== */
+        .reviews-grid {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+        .review-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 2rem;
+            border: 1px solid var(--gray-200);
+            transition: var(--transition);
+            position: relative;
+        }
+        .review-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+        .review-stars {
+            color: #f59e0b;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            letter-spacing: 2px;
+        }
+        .review-text {
+            font-size: 0.95rem;
+            color: var(--gray-800);
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+            font-style: italic;
+        }
+        .review-author {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .review-avatar {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--navy);
+            font-weight: 800;
+            font-size: 1rem;
+        }
+        .review-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--navy);
+        }
+        .review-source {
+            font-size: 0.8rem;
+            color: var(--gray-400);
+        }
+        .review-quote {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            font-size: 3rem;
+            color: var(--gray-100);
+            font-family: Georgia, serif;
+            line-height: 1;
+        }
+
+        /* ===== SERVICE AREA ===== */
+        .area { background: var(--gray-50); }
+        .area-content {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+        .area-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.6rem;
+        }
+        .area-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+            color: var(--gray-800);
+            padding: 0.5rem 0;
+        }
+        .area-list li::before {
+            content: '📍';
+            font-size: 0.8rem;
+        }
+        .area-info {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 2.5rem;
+            border: 1px solid var(--gray-200);
+        }
+        .area-info h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 1rem;
+        }
+        .area-info p {
+            color: var(--gray-600);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 1rem;
+        }
+        .km-price {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(200, 168, 78, 0.1);
+            border: 1px solid rgba(200, 168, 78, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--navy);
+        }
+
+        /* ===== FAQ ===== */
+        .faq-list {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+        .faq-item {
+            background: var(--white);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+        .faq-item:hover { border-color: var(--gold); }
+        .faq-question {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.3rem 1.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--navy);
+            transition: var(--transition);
+        }
+        .faq-question:hover { color: var(--gold-dark); }
+        .faq-toggle {
+            width: 28px;
+            height: 28px;
+            background: var(--gray-100);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: var(--transition);
+            flex-shrink: 0;
+            color: var(--gray-600);
+        }
+        .faq-item.active .faq-toggle {
+            background: var(--gold);
+            color: var(--navy);
+            transform: rotate(45deg);
+        }
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+        }
+        .faq-answer-inner {
+            padding: 0 1.5rem 1.5rem;
+            font-size: 0.92rem;
+            color: var(--gray-600);
+            line-height: 1.7;
+        }
+
+        /* ===== CTA ===== */
+        .cta {
+            background: linear-gradient(165deg, var(--navy) 0%, var(--blue) 100%);
+            padding: 6rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .cta::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 140%;
+            height: 200%;
+            background: radial-gradient(ellipse at center, rgba(200, 168, 78, 0.06) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .cta-content {
+            max-width: 700px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+        .cta h2 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: clamp(2rem, 4vw, 2.8rem);
+            font-weight: 800;
+            color: var(--white);
+            margin-bottom: 1rem;
+            letter-spacing: -0.5px;
+        }
+        .cta p {
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 2.5rem;
+            line-height: 1.7;
+        }
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+        .cta-phone {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            color: rgba(255,255,255,0.5);
+            font-size: 1rem;
+        }
+        .cta-phone a {
+            color: var(--gold);
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background: var(--navy);
+            color: rgba(255,255,255,0.6);
+            padding: 4rem 2rem 2rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .footer-grid {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+        .footer-brand .nav-logo { margin-bottom: 1rem; }
+        .footer-brand p {
+            font-size: 0.88rem;
+            line-height: 1.7;
+            margin-bottom: 1.5rem;
+        }
+        .footer h4 {
+            color: var(--white);
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .footer ul li {
+            margin-bottom: 0.6rem;
+        }
+        .footer ul li a {
+            font-size: 0.88rem;
+            transition: var(--transition);
+        }
+        .footer ul li a:hover { color: var(--gold); }
+        .footer-bottom {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.82rem;
+        }
+
+        /* ===== FLOATING CTA ===== */
+        .floating-cta {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            align-items: flex-end;
+        }
+        .floating-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            box-shadow: var(--shadow-lg);
+        }
+        .floating-btn.phone {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: var(--navy);
+        }
+        .floating-btn.whatsapp {
+            background: #25d366;
+            color: white;
+        }
+        .floating-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* ===== ANIMATIONS ===== */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .hero-content { grid-template-columns: 1fr; gap: 3rem; }
+            .hero-visual { max-width: 500px; }
+            .services-grid { grid-template-columns: repeat(2, 1fr); }
+            .why-us-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .nav-links { 
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(10, 22, 40, 0.98);
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                gap: 2rem;
+                backdrop-filter: blur(20px);
+            }
+            .nav-links.open { display: flex; }
+            .nav-links a { font-size: 1.3rem; }
+            .mobile-toggle { display: flex; }
+            .hero-content { padding: 7rem 1.5rem 3rem; }
+            .hero-stats { gap: 1.5rem; }
+            .hero-stat-value { font-size: 1.6rem; }
+            .services-grid { grid-template-columns: 1fr; }
+            .pricing-grid { grid-template-columns: 1fr; }
+            .price-card.featured { transform: none; }
+            .reviews-grid { grid-template-columns: 1fr; }
+            .area-content { grid-template-columns: 1fr; }
+            .why-us-grid { grid-template-columns: 1fr 1fr; }
+            .footer-grid { grid-template-columns: 1fr; }
+            .footer-bottom { flex-direction: column; gap: 0.5rem; text-align: center; }
+            .section { padding: 4rem 1.5rem; }
+            .cta { padding: 4rem 1.5rem; }
+        }
+        @media (max-width: 480px) {
+            .hero-actions { flex-direction: column; }
+            .hero-stats { flex-direction: column; gap: 1rem; }
+            .why-us-grid { grid-template-columns: 1fr; }
+            .pricing-grid { grid-template-columns: 1fr; max-width: 350px; margin: 0 auto; }
+            .trust-bar-inner { gap: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav class="nav" id="nav">
+    <div class="nav-inner">
+        <a href="#" class="nav-logo">
+            <div class="nav-logo-icon">👑</div>
+            <div class="nav-logo-text">LVI <span>Kruunu</span></div>
+        </a>
+        <div class="nav-links" id="navLinks">
+            <a href="#palvelut">Palvelut</a>
+            <a href="#hinnat">Hinnat</a>
+            <a href="#miksi-me">Miksi me</a>
+            <a href="#arvostelut">Arvostelut</a>
+            <a href="#ukk">UKK</a>
+            <a href="tel:+358505864771" class="nav-cta">📞 050 586 4771</a>
+        </div>
+        <div class="mobile-toggle" id="mobileToggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+    <div class="hero-grid-bg"></div>
+    <div class="hero-content">
+        <div class="hero-left">
+            <div class="hero-badge">
+                <span class="pulse"></span>
+                Päivystys 24/7 – Tavoitat aina
+            </div>
+            <h1>
+                Luotettavat<br>
+                <span class="highlight">LVI-palvelut</span><br>
+                Tampereella
+            </h1>
+            <p class="hero-desc">
+                Kaikki LVI-työt ammattitaidolla – pienestä hanan vaihdosta energiaremonttiin. 
+                Nopea palvelu, reilu hinnoittelu ja vuosikymmenten kokemus.
+            </p>
+            <div class="hero-actions">
+                <a href="tel:+358505864771" class="btn-primary">
+                    📞 Soita nyt
+                </a>
+                <a href="#palvelut" class="btn-secondary">
+                    Tutustu palveluihin →
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-value">5/5</div>
+                    <div class="hero-stat-label">Google-arvio</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">24/7</div>
+                    <div class="hero-stat-label">Päivystys</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-value">65€/h</div>
+                    <div class="hero-stat-label">Alkaen</div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="hero-card">
+                <div class="hero-card-icon">🔧</div>
+                <div class="hero-card-content">
+                    <h3>Kaikki putkityöt</h3>
+                    <p>Hanan vaihdosta putkiremonttiin</p>
+                </div>
+            </div>
+            <div class="hero-card">
+                <div class="hero-card-icon">🌡️</div>
+                <div class="hero-card-content">
+                    <h3>Lämpöpumput</h3>
+                    <p>Asennus, huolto ja neuvonta</p>
+                </div>
+            </div>
+            <div class="hero-card">
+                <div class="hero-card-icon">🏠</div>
+                <div class="hero-card-content">
+                    <h3>Energiaremontit</h3>
+                    <p>Säästä lämmityskuluissa</p>
+                </div>
+            </div>
+            <div class="hero-card">
+                <div class="hero-card-icon">⚡</div>
+                <div class="hero-card-content">
+                    <h3>Nopea palvelu</h3>
+                    <p>Jopa samana päivänä</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- TRUST BAR -->
+<div class="trust-bar">
+    <div class="trust-bar-inner">
+        <div class="trust-item">
+            <div class="trust-item-icon">⭐</div>
+            <span><strong>5/5</strong> Google-arviot</span>
+        </div>
+        <div class="trust-item">
+            <div class="trust-item-icon">🛡️</div>
+            <span><strong>Vakuutettu</strong> yritys</span>
+        </div>
+        <div class="trust-item">
+            <div class="trust-item-icon">💬</div>
+            <span><strong>Ilmainen</strong> neuvonta</span>
+        </div>
+        <div class="trust-item">
+            <div class="trust-item-icon">📱</div>
+            <span><strong>WhatsApp</strong> käytössä</span>
+        </div>
+        <div class="trust-item">
+            <div class="trust-item-icon">🏆</div>
+            <span><strong>Pirkanmaan</strong> alue</span>
+        </div>
+    </div>
+</div>
+
+<!-- SERVICES -->
+<section class="section services" id="palvelut">
+    <div class="section-header fade-in">
+        <div class="section-label">Palvelumme</div>
+        <h2 class="section-title">Kaikki LVI-työt yhdeltä luukulta</h2>
+        <p class="section-subtitle">Meiltä saat kaikki kodin LVI-palvelut ammattitaidolla – pienistä korjauksista laajoihin remontteihin.</p>
+    </div>
+    <div class="services-grid">
+        <div class="service-card fade-in">
+            <div class="service-icon">🔧</div>
+            <h3>Putkityöt</h3>
+            <p>Kaikki kodin putkityöt nopeasti ja ammattitaidolla. Korjaamme vuodot ja asennukset sujuvasti.</p>
+            <ul class="service-features">
+                <li>Hanan vaihto</li>
+                <li>Suihkusekoittajan vaihto</li>
+                <li>Vesipostin vaihto</li>
+                <li>Putkistojen korjaukset</li>
+            </ul>
+        </div>
+        <div class="service-card fade-in">
+            <div class="service-icon">🌡️</div>
+            <h3>Lämpöpumput</h3>
+            <p>Asennukset ja huollot kaikille lämpöpumpputyypeille. Säästä energiaa ja rahaa.</p>
+            <ul class="service-features">
+                <li>Maalämpöpumput</li>
+                <li>Ilmalämpöpumput</li>
+                <li>Ilma-vesilämpöpumput</li>
+                <li>Huolto ja ylläpito</li>
+            </ul>
+        </div>
+        <div class="service-card fade-in">
+            <div class="service-icon">🏗️</div>
+            <h3>LVI-saneeraukset</h3>
+            <p>Kokonaisvaltaiset LVI-remontit ja linjasaneeraukset kokemuksella ja huolella.</p>
+            <ul class="service-features">
+                <li>Kylpyhuoneremontit</li>
+                <li>Linjasaneeraukset</li>
+                <li>Lämmitysjärjestelmät</li>
+                <li>Energiaremontit</li>
+            </ul>
+        </div>
+        <div class="service-card fade-in">
+            <div class="service-icon">🍽️</div>
+            <h3>Kodinkoneasennukset</h3>
+            <p>Asennamme kodinkoneet ammattitaidolla, jotta kaikki toimii turvallisesti ja oikein.</p>
+            <ul class="service-features">
+                <li>Astianpesukoneen asennus</li>
+                <li>Pyykinpesukoneen asennus</li>
+                <li>Vesiliitännät</li>
+                <li>Vanhan koneen poisto</li>
+            </ul>
+        </div>
+        <div class="service-card fade-in">
+            <div class="service-icon">🚨</div>
+            <h3>Päivystyspalvelu 24/7</h3>
+            <p>Hätätapauksissa olemme aina tavoitettavissa. Emme sulje puhelinta yöksi.</p>
+            <ul class="service-features">
+                <li>Vesivahingot</li>
+                <li>Putkivuodot</li>
+                <li>Hätäkorjaukset</li>
+                <li>Nopea vasteaika</li>
+            </ul>
+        </div>
+        <div class="service-card fade-in">
+            <div class="service-icon">💡</div>
+            <h3>Neuvonta & Suunnittelu</h3>
+            <p>Ilmainen LVI-neuvonta kaikissa asioissa. Autamme löytämään parhaan ratkaisun.</p>
+            <ul class="service-features">
+                <li>Ilmainen neuvonta</li>
+                <li>Energialaskuri</li>
+                <li>Ratkaisuehdotukset</li>
+                <li>Kustannusarviot</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- PRICING -->
+<section class="section pricing" id="hinnat">
+    <div class="section-header fade-in">
+        <div class="section-label">Hinnoittelu</div>
+        <h2 class="section-title">Selkeä ja reilu hinnoittelu</h2>
+        <p class="section-subtitle">Ei piilokustannuksia – tiedät aina etukäteen mitä maksat. Kaikki hinnat sisältävät ALV:n.</p>
+    </div>
+    <div class="pricing-grid">
+        <div class="price-card fade-in">
+            <div class="price-label">Alle 2h työt</div>
+            <div class="price-value">100€</div>
+            <div class="price-unit">/ tunti</div>
+            <div class="price-note">sis. ALV 25,5%</div>
+            <p class="price-desc">Pienet asennukset ja korjaukset, kuten hanan tai suihkusekoittajan vaihto.</p>
+        </div>
+        <div class="price-card featured fade-in">
+            <div class="featured-badge">Suosituin</div>
+            <div class="price-label">2 tuntia tai yli</div>
+            <div class="price-value">65€</div>
+            <div class="price-unit">/ tunti</div>
+            <div class="price-note">sis. ALV 25,5%</div>
+            <p class="price-desc">Laajemmat asennukset, remontit ja lämpöpumppuasennukset.</p>
+        </div>
+        <div class="price-card fade-in">
+            <div class="price-label">Kilometrikorvaus</div>
+            <div class="price-value">1,35€</div>
+            <div class="price-unit">/ km</div>
+            <div class="price-note">sis. ALV 25,5%</div>
+            <p class="price-desc">Matkakulut kohteeseen. Tampereen kantakaupungissa minimaalinen.</p>
+        </div>
+    </div>
+</section>
+
+<!-- WHY US -->
+<section class="section" id="miksi-me">
+    <div class="section-header fade-in">
+        <div class="section-label">Miksi LVI Kruunu</div>
+        <h2 class="section-title">Siksi meihin luotetaan</h2>
+        <p class="section-subtitle">Valitsemalla LVI Kruunun saat pitkän kokemuksen, nopean palvelun ja aina reilun hinnan.</p>
+    </div>
+    <div class="why-us-grid">
+        <div class="why-card fade-in">
+            <div class="why-icon">⚡</div>
+            <h3>Nopea vasteaika</h3>
+            <p>Palvelua jopa samana päivänä. Hätätapauksissa reagoimme välittömästi, 24/7.</p>
+        </div>
+        <div class="why-card fade-in">
+            <div class="why-icon">💰</div>
+            <h3>Reilu hinta</h3>
+            <p>Selkeä tuntihinnoittelu ilman piilokustannuksia. Tiedät aina mitä maksat.</p>
+        </div>
+        <div class="why-card fade-in">
+            <div class="why-icon">🏅</div>
+            <h3>Ammattitaito</h3>
+            <p>Vuosikymmenten kokemus LVI-alalta. Erityisosaamista lämpöpumpuista.</p>
+        </div>
+        <div class="why-card fade-in">
+            <div class="why-icon">🤝</div>
+            <h3>Helppo tavoittaa</h3>
+            <p>Puhelin auki aina – myös öisin. Tavoitat meidät myös WhatsAppilla.</p>
+        </div>
+    </div>
+</section>
+
+<!-- REVIEWS -->
+<section class="section" id="arvostelut" style="background: var(--gray-50);">
+    <div class="section-header fade-in">
+        <div class="section-label">Asiakaskokemukset</div>
+        <h2 class="section-title">Mitä asiakkaamme sanovat</h2>
+        <p class="section-subtitle">5/5 tähteä Google-arvosteluissa. Asiakastyytyväisyys on meille kaikki kaikessa.</p>
+    </div>
+    <div class="reviews-grid">
+        <div class="review-card fade-in">
+            <div class="review-quote">"</div>
+            <div class="review-stars">★★★★★</div>
+            <p class="review-text">Nyt on putkimies, jonka sanaan voi luottaa! Toteutti toimivan ratkaisun odottamattoman nopealla aikataululla. Erinomainen työn jälki.</p>
+            <div class="review-author">
+                <div class="review-avatar">M</div>
+                <div>
+                    <div class="review-name">Mika T.</div>
+                    <div class="review-source">Google-arvostelu</div>
+                </div>
+            </div>
+        </div>
+        <div class="review-card fade-in">
+            <div class="review-quote">"</div>
+            <div class="review-stars">★★★★★</div>
+            <p class="review-text">Erinomaisen hyvää, laadukasta ja täsmällistä palvelua. Asensi ilmalämpöpumpun nopeasti ja siististi. Suosittelen lämpimästi!</p>
+            <div class="review-author">
+                <div class="review-avatar">S</div>
+                <div>
+                    <div class="review-name">Sari K.</div>
+                    <div class="review-source">Google-arvostelu</div>
+                </div>
+            </div>
+        </div>
+        <div class="review-card fade-in">
+            <div class="review-quote">"</div>
+            <div class="review-stars">★★★★★</div>
+            <p class="review-text">Kovan hädän keskellä pääsi auttamaan odottamattoman nopealla aikataululla. Vesivuoto saatiin korjattua saman päivän aikana. Kiitos!</p>
+            <div class="review-author">
+                <div class="review-avatar">J</div>
+                <div>
+                    <div class="review-name">Juha P.</div>
+                    <div class="review-source">Google-arvostelu</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- SERVICE AREA -->
+<section class="section area">
+    <div class="section-header fade-in">
+        <div class="section-label">Toimialue</div>
+        <h2 class="section-title">Palvelualueemme Pirkanmaalla</h2>
+        <p class="section-subtitle">Palvelemme Tamperetta ja lähikuntia. Kilometrikorvaus vain 1,35 €/km.</p>
+    </div>
+    <div class="area-content fade-in">
+        <ul class="area-list">
+            <li>Tampere</li>
+            <li>Nokia</li>
+            <li>Ylöjärvi</li>
+            <li>Kangasala</li>
+            <li>Lempäälä</li>
+            <li>Pirkkala</li>
+            <li>Vesilahti</li>
+            <li>Orivesi</li>
+            <li>Hämeenkyrö</li>
+            <li>Sastamala</li>
+        </ul>
+        <div class="area-info">
+            <h3>Palvelua koko Pirkanmaalla</h3>
+            <p>Pääasiallinen toimialueemme kattaa Tampereen ja lähikunnat. Tulemme mielellämme myös kauemmas – kysy rohkeasti!</p>
+            <div class="km-price">
+                🚗 Kilometrikorvaus vain 1,35 €/km (sis. ALV)
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="ukk">
+    <div class="section-header fade-in">
+        <div class="section-label">Usein kysytyt</div>
+        <h2 class="section-title">Usein kysytyt kysymykset</h2>
+        <p class="section-subtitle">Löydä vastaukset yleisimpiin kysymyksiin LVI-palveluistamme.</p>
+    </div>
+    <div class="faq-list fade-in">
+        <div class="faq-item">
+            <div class="faq-question">
+                Kuinka nopeasti pääsette paikalle?
+                <span class="faq-toggle">+</span>
+            </div>
+            <div class="faq-answer">
+                <div class="faq-answer-inner">Normaalitapauksissa pääsemme paikalle usein jo saman päivän tai seuraavan päivän aikana. Hätätapauksissa, kuten vesivuodoissa, reagoimme välittömästi – päivystämme 24/7.</div>
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">
+                Mitä LVI-palvelut maksavat?
+                <span class="faq-toggle">+</span>
+            </div>
+            <div class="faq-answer">
+                <div class="faq-answer-inner">Yhden tunnin asennustyö 100 €/h, kaksi tuntia tai pidemmät työt 65 €/h. Kilometrikorvaus on 1,35 €/km. Kaikki hinnat sisältävät ALV:n. Annamme aina ennakkoarvion työn hinnasta ennen aloitusta.</div>
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">
+                Mikä lämpöpumppu sopii kotiini?
+                <span class="faq-toggle">+</span>
+            </div>
+            <div class="faq-answer">
+                <div class="faq-answer-inner">Oikea valinta riippuu kodistasi, lämmitystarpeestasi ja budjetistasi. Maalämpö on tehokkain, ilma-vesilämpöpumppu hyvä vaihtoehto ja ilmalämpöpumppu edullisin vaihtoehto. Tarjoamme ilmaisen neuvonnan – soita, niin mietitään yhdessä!</div>
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">
+                Teettekö myös pieniä töitä, kuten hanan vaihdon?
+                <span class="faq-toggle">+</span>
+            </div>
+            <div class="faq-answer">
+                <div class="faq-answer-inner">Ehdottomasti! Meiltä saa kaikki LVI-työt, niin pienistä hanan vaihdoista aina isompaan energiaremonttiin saakka. Voit varata pienen työn helposti suoraan varauskalenteristamme.</div>
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">
+                Asetatteko astianpesu- ja pyykinpesukoneet?
+                <span class="faq-toggle">+</span>
+            </div>
+            <div class="faq-answer">
+                <div class="faq-answer-inner">Kyllä! Asennamme kaikki kodinkoneet ammattitaidolla. Hoidamme vesiliitännät ja varmistamme, että kone toimii moitteettomasti. Tarvittaessa poistamme myös vanhan koneen.</div>
+            </div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question">
+                Onko neuvonta todella ilmaista?
+                <span class="faq-toggle">+</span>
+            </div>
+            <div class="faq-answer">
+                <div class="faq-answer-inner">Kyllä, palveluumme kuuluu aina ilmainen neuvonta kaikissa LVI-asioissa. Soita rohkeasti ja kysy – autamme mielellämme löytämään parhaan ratkaisun tilanteeseesi.</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+    <div class="cta-content fade-in">
+        <h2>Tarvitsetko luotettavan putkimiehen?</h2>
+        <p>Soita meille tai lähetä WhatsApp-viesti – vastaamme nopeasti ja annamme aina ilmaisen arvion työstä. Päivystämme 24/7.</p>
+        <div class="cta-buttons">
+            <a href="tel:+358505864771" class="btn-primary" style="font-size: 1.1rem; padding: 1.1rem 2.5rem;">
+                📞 Soita 050 586 4771
+            </a>
+            <a href="#" class="btn-secondary" style="font-size: 1.1rem; padding: 1.1rem 2.5rem;">
+                💬 Lähetä WhatsApp
+            </a>
+        </div>
+        <div class="cta-phone">
+            Tai soita suoraan: <a href="tel:+358505864771">050 586 4771</a>
+        </div>
+    </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="footer-grid">
+        <div class="footer-brand">
+            <a href="#" class="nav-logo">
+                <div class="nav-logo-icon">👑</div>
+                <div class="nav-logo-text">LVI <span>Kruunu</span></div>
+            </a>
+            <p>Ammattilaisen LVI-palvelut Tampereella ja Pirkanmaalla. Luotettava kumppani kaikissa putkistojen, lämmityksen ja ilmanvaihdon tarpeissa.</p>
+        </div>
+        <div>
+            <h4>Palvelut</h4>
+            <ul>
+                <li><a href="#palvelut">Putkityöt</a></li>
+                <li><a href="#palvelut">Lämpöpumput</a></li>
+                <li><a href="#palvelut">LVI-saneeraukset</a></li>
+                <li><a href="#palvelut">Kodinkoneasennukset</a></li>
+                <li><a href="#palvelut">Päivystys 24/7</a></li>
+            </ul>
+        </div>
+        <div>
+            <h4>Yhteystiedot</h4>
+            <ul>
+                <li><a href="tel:+358505864771">📞 050 586 4771</a></li>
+                <li><a href="#">💬 WhatsApp</a></li>
+                <li><a href="#">📧 Sähköposti</a></li>
+                <li>📍 Tampere, Pirkanmaa</li>
+            </ul>
+        </div>
+        <div>
+            <h4>Tietoa</h4>
+            <ul>
+                <li><a href="#miksi-me">Miksi me</a></li>
+                <li><a href="#arvostelut">Arvostelut</a></li>
+                <li><a href="#ukk">UKK</a></li>
+                <li>Y-tunnus: 3393873-2</li>
+            </ul>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <span>&copy; 2024 LVI Kruunu. Kaikki oikeudet pidätetään.</span>
+        <span>Tampere, Pirkanmaa</span>
+    </div>
+</footer>
+
+<!-- FLOATING CTA -->
+<div class="floating-cta">
+    <a href="#" class="floating-btn whatsapp" title="WhatsApp">💬</a>
+    <a href="tel:+358505864771" class="floating-btn phone" title="Soita nyt">📞</a>
+</div>
+
+<script>
+// Navbar scroll effect
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// Mobile menu
+const mobileToggle = document.getElementById('mobileToggle');
+const navLinks = document.getElementById('navLinks');
+mobileToggle.addEventListener('click', () => {
+    mobileToggle.classList.toggle('active');
+    navLinks.classList.toggle('open');
+});
+navLinks.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+        mobileToggle.classList.remove('active');
+        navLinks.classList.remove('open');
+    });
+});
+
+// FAQ accordion
+document.querySelectorAll('.faq-question').forEach(q => {
+    q.addEventListener('click', () => {
+        const item = q.parentElement;
+        const answer = item.querySelector('.faq-answer');
+        const isActive = item.classList.contains('active');
+        
+        document.querySelectorAll('.faq-item').forEach(i => {
+            i.classList.remove('active');
+            i.querySelector('.faq-answer').style.maxHeight = null;
+        });
+        
+        if (!isActive) {
+            item.classList.add('active');
+            answer.style.maxHeight = answer.scrollHeight + 'px';
+        }
+    });
+});
+
+// Scroll animations
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+        }
+    });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
