@@ -1,127 +1,95 @@
-// ============================================
-// LVI KRUUNU – Interactive JavaScript
-// ============================================
+// LVI KRUUNU – Premium Interactive JS v2
 
 document.addEventListener('DOMContentLoaded', () => {
-    // === Scroll Animations (Intersection Observer) ===
-    const animatedElements = document.querySelectorAll('[data-animate]');
+    // === Scroll Animations ===
     const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry, index) => {
+        entries.forEach((entry) => {
             if (entry.isIntersecting) {
-                // Stagger animations for siblings
                 const siblings = entry.target.parentElement.querySelectorAll('[data-animate]');
-                const siblingIndex = Array.from(siblings).indexOf(entry.target);
-                setTimeout(() => {
-                    entry.target.classList.add('visible');
-                }, siblingIndex * 100);
+                const idx = Array.from(siblings).indexOf(entry.target);
+                setTimeout(() => entry.target.classList.add('visible'), idx * 120);
                 observer.unobserve(entry.target);
             }
         });
-    }, {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
-    animatedElements.forEach(el => observer.observe(el));
+    document.querySelectorAll('[data-animate]').forEach(el => observer.observe(el));
 
-    // === Navbar Scroll Effect ===
+    // === Navbar Scroll ===
     const navbar = document.getElementById('navbar');
-    let lastScroll = 0;
-
     window.addEventListener('scroll', () => {
-        const currentScroll = window.pageYOffset;
-        if (currentScroll > 50) {
-            navbar.classList.add('scrolled');
-        } else {
-            navbar.classList.remove('scrolled');
-        }
-        lastScroll = currentScroll;
+        navbar.classList.toggle('scrolled', window.pageYOffset > 50);
     }, { passive: true });
 
-    // === Mobile Menu Toggle ===
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    // === Mobile Menu ===
+    const menuBtn = document.getElementById('mobileMenuBtn');
     const navLinks = document.getElementById('navLinks');
-
-    if (mobileMenuBtn && navLinks) {
-        mobileMenuBtn.addEventListener('click', () => {
+    if (menuBtn && navLinks) {
+        menuBtn.addEventListener('click', () => {
             navLinks.classList.toggle('active');
-            mobileMenuBtn.classList.toggle('active');
-
-            // Animate hamburger to X
-            const spans = mobileMenuBtn.querySelectorAll('span');
-            if (mobileMenuBtn.classList.contains('active')) {
-                spans[0].style.transform = 'rotate(45deg) translate(5px, 5px)';
-                spans[1].style.opacity = '0';
-                spans[2].style.transform = 'rotate(-45deg) translate(5px, -5px)';
-            } else {
-                spans[0].style.transform = 'none';
-                spans[1].style.opacity = '1';
-                spans[2].style.transform = 'none';
-            }
+            const spans = menuBtn.querySelectorAll('span');
+            const open = navLinks.classList.contains('active');
+            spans[0].style.transform = open ? 'rotate(45deg) translate(5px, 5px)' : '';
+            spans[1].style.opacity = open ? '0' : '1';
+            spans[2].style.transform = open ? 'rotate(-45deg) translate(5px, -5px)' : '';
         });
-
-        // Close menu when clicking a link
-        navLinks.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
+        navLinks.querySelectorAll('a').forEach(a => {
+            a.addEventListener('click', () => {
                 navLinks.classList.remove('active');
-                mobileMenuBtn.classList.remove('active');
-                const spans = mobileMenuBtn.querySelectorAll('span');
-                spans[0].style.transform = 'none';
+                const spans = menuBtn.querySelectorAll('span');
+                spans[0].style.transform = '';
                 spans[1].style.opacity = '1';
-                spans[2].style.transform = 'none';
+                spans[2].style.transform = '';
             });
         });
     }
 
-    // === Smooth Scroll for Anchor Links ===
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            const targetId = this.getAttribute('href');
-            if (targetId === '#') return;
-            const target = document.querySelector(targetId);
-            if (target) {
-                e.preventDefault();
-                target.scrollIntoView({ behavior: 'smooth' });
-            }
+    // === Smooth Scroll ===
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', function(e) {
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
         });
     });
 
-    // === Counter Animation ===
-    function animateCounter(element, target, suffix = '') {
-        const duration = 2000;
-        const start = 0;
-        const startTime = performance.now();
-
-        function update(currentTime) {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const easeOut = 1 - Math.pow(1 - progress, 3);
-            const current = Math.round(start + (target - start) * easeOut);
-            element.textContent = current + suffix;
-            if (progress < 1) {
-                requestAnimationFrame(update);
-            }
+    // === Hero Particles ===
+    const particlesContainer = document.getElementById('particles');
+    if (particlesContainer) {
+        for (let i = 0; i < 30; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.top = Math.random() * 100 + '%';
+            p.style.setProperty('--tx', (Math.random() - 0.5) * 200 + 'px');
+            p.style.setProperty('--ty', (Math.random() - 0.5) * 200 + 'px');
+            p.style.animationDelay = Math.random() * 8 + 's';
+            p.style.animationDuration = (6 + Math.random() * 6) + 's';
+            p.style.width = p.style.height = (2 + Math.random() * 4) + 'px';
+            particlesContainer.appendChild(p);
         }
-        requestAnimationFrame(update);
     }
 
-    // === Active Nav Link Highlighting ===
+    // === Parallax on Hero ===
+    const hero = document.querySelector('.hero');
+    if (hero && window.innerWidth > 768) {
+        window.addEventListener('scroll', () => {
+            const scroll = window.pageYOffset;
+            const overlay = hero.querySelector('.hero-overlay');
+            if (overlay && scroll < window.innerHeight) {
+                overlay.style.opacity = 0.85 + (scroll / window.innerHeight) * 0.15;
+            }
+        }, { passive: true });
+    }
+
+    // === Active Nav Highlight ===
     const sections = document.querySelectorAll('section[id]');
     window.addEventListener('scroll', () => {
-        const scrollPos = window.scrollY + 150;
-        sections.forEach(section => {
-            const top = section.offsetTop;
-            const height = section.offsetHeight;
-            const id = section.getAttribute('id');
-            const link = document.querySelector(`.nav-links a[href="#${id}"]`);
+        const pos = window.scrollY + 150;
+        sections.forEach(s => {
+            const link = document.querySelector(`.nav-links a[href="#${s.id}"]`);
             if (link) {
-                if (scrollPos >= top && scrollPos < top + height) {
-                    link.style.color = 'var(--primary)';
-                    link.style.fontWeight = '600';
-                } else {
-                    link.style.color = '';
-                    link.style.fontWeight = '';
-                }
+                const active = pos >= s.offsetTop && pos < s.offsetTop + s.offsetHeight;
+                link.style.color = active ? 'var(--blue)' : '';
             }
         });
     }, { passive: true });
