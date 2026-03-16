@@ -116,24 +116,17 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          echo "API key set: $([ -n "$ANTHROPIC_API_KEY" ] && echo YES || echo NO)"
-          echo "Claude version: $(claude --version 2>&1 || echo 'not found')"
-
           ALL_DATA=$(cat /tmp/market-scout-data/*.json 2>/dev/null | tr '\n' ' ' || echo '{}')
           CURRENT_DATE=$(TZ='Europe/Helsinki' date '+%Y-%m-%d %H:%M')
           REPORT_FILE="reports/$(TZ='Europe/Helsinki' date '+%Y-%m-%d-%H%M').md"
 
+          mkdir -p reports
           claude --print --dangerously-skip-permissions \
             --system-prompt "$(cat plugins/market-scout/agents/report-compiler.md)" \
             "Compile a market intelligence report from this data. Current Finnish time: $CURRENT_DATE. Data: $ALL_DATA. Return a complete markdown report." \
-            > /tmp/report-output.txt 2>&1 || true
-          echo "Exit code: $?"
-          echo "--- Output ---"
-          cat /tmp/report-output.txt || echo "(no output)"
-
-          mkdir -p reports
-          cp /tmp/report-output.txt "$REPORT_FILE"
+            > "$REPORT_FILE" 2>&1
           echo "report_file=$REPORT_FILE" >> $GITHUB_OUTPUT
+          echo "Report saved to: $REPORT_FILE"
 
       - name: Push Report to Obsidian Vault
         run: |
