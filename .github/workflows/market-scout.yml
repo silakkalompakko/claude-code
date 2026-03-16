@@ -62,7 +62,7 @@ jobs:
       - name: Run Topic Researchers (parallel)
         id: research
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.APINA_AVAIN }}
         run: |
           mkdir -p /tmp/market-scout-data
 
@@ -87,7 +87,7 @@ jobs:
       - name: Run Finland Opportunity Scanner
         id: finland_scan
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.APINA_AVAIN }}
         run: |
           # Combine all research data for context
           ALL_RESEARCH=$(cat /tmp/market-scout-data/research-*.json 2>/dev/null | tr '\n' ' ' || echo '[]')
@@ -103,7 +103,7 @@ jobs:
       - name: Run Trend Analyzer
         id: trends
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.APINA_AVAIN }}
         run: |
           ALL_DATA=$(cat /tmp/market-scout-data/*.json 2>/dev/null | tr '\n' ' ' || echo '{}')
 
@@ -117,7 +117,7 @@ jobs:
       - name: Compile Report
         id: report
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.APINA_AVAIN }}
         run: |
           ALL_DATA=$(cat /tmp/market-scout-data/*.json 2>/dev/null | tr '\n' ' ' || echo '{}')
           CURRENT_DATE=$(TZ='Europe/Helsinki' date '+%Y-%m-%d %H:%M')
