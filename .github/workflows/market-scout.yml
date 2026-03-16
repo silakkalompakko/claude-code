@@ -132,37 +132,21 @@ jobs:
           echo "report_file=$REPORT_FILE" >> $GITHUB_OUTPUT
           echo "Report saved to: $REPORT_FILE"
 
-      - name: Update Reports Index
+      - name: Push Report to Obsidian Vault
         run: |
-          mkdir -p reports
+          git clone https://x-access-token:${{ secrets.VAULT_TOKEN }}@github.com/WebWelho/obsidian-vault.git /tmp/obsidian-vault
 
-          # Generate index of all reports
-          cat > reports/INDEX.md << 'EOF'
-          # Market Scout Reports Index
+          mkdir -p /tmp/obsidian-vault/Market\ Scout
 
-          *Auto-updated by market-scout workflow*
+          REPORT_DATE=$(TZ='Europe/Helsinki' date '+%Y-%m-%d')
+          cp ${{ steps.report.outputs.report_file }} "/tmp/obsidian-vault/Market Scout/${REPORT_DATE}.md"
 
-          ## Recent Reports
-
-          EOF
-
-          # List all reports newest first
-          ls -t reports/*.md 2>/dev/null | grep -v INDEX.md | head -20 | while read f; do
-            DATE=$(echo "$f" | grep -oP '\d{4}-\d{2}-\d{2}-\d{4}' || basename "$f" .md)
-            echo "- [$DATE]($f)" >> reports/INDEX.md
-          done
-
-      - name: Commit Reports
-        run: |
-          git config --global user.email "market-scout@github-actions"
-          git config --global user.name "Market Scout Bot"
-          git add reports/
-
-          REPORT_COUNT=$(ls reports/*.md 2>/dev/null | grep -v INDEX | wc -l)
-          git commit -m "market-scout: add report $(TZ='Europe/Helsinki' date '+%Y-%m-%d %H:%M') Finnish time" \
-            --allow-empty || echo "No changes to commit"
-
-          git push origin HEAD
+          cd /tmp/obsidian-vault
+          git config user.email "market-scout@github-actions"
+          git config user.name "Market Scout Bot"
+          git add "Market Scout/"
+          git commit -m "market-scout: raportti ${REPORT_DATE}" || echo "No changes to commit"
+          git push
 
       - name: Send Email Digest
         if: ${{ !cancelled() }}
