@@ -126,10 +126,10 @@ jobs:
           claude --print --dangerously-skip-permissions \
             --system-prompt "$(cat plugins/market-scout/agents/report-compiler.md)" \
             "Compile a market intelligence report from this data. Current Finnish time: $CURRENT_DATE. Data: $ALL_DATA. Return a complete markdown report." \
-            > /tmp/report-output.txt 2>&1
-          EXIT_CODE=$?
-          echo "Exit code: $EXIT_CODE"
-          cat /tmp/report-output.txt
+            > /tmp/report-output.txt 2>&1 || true
+          echo "Exit code: $?"
+          echo "--- Output ---"
+          cat /tmp/report-output.txt || echo "(no output)"
 
           mkdir -p reports
           cp /tmp/report-output.txt "$REPORT_FILE"
