@@ -46,122 +46,85 @@ jobs:
           set -e
           mkdir -p /tmp/market-scout-data reports
 
-          # call_claude: args are system_prompt user_msg output_file max_tokens
           call_claude() {
-            local SYS="$1"
-            local USR="$2"
-            local OUTFILE="$3"
-            local TOK="${4:-4096}"
-
-            # Write payload using node with args (avoids heredoc env issues)
+            local SYS="$1" USR="$2" OUTFILE="$3" TOK="${4:-4096}"
             node -e "
-              const sys = process.argv[1];
-              const usr = process.argv[2];
-              const tok = parseInt(process.argv[3]);
-              const payload = JSON.stringify({
-                model: "claude-opus-4-5",
-                max_tokens: tok,
-                system: sys,
-                messages: [{ role: "user", content: usr }]
-              });
-              require('fs').writeFileSync('/tmp/payload.json', payload);
+              const s=process.argv[1],u=process.argv[2],t=parseInt(process.argv[3]);
+              require('fs').writeFileSync('/tmp/pl.json',JSON.stringify({
+                model:"claude-opus-4-5",max_tokens:t,system:s,
+                messages:[{role:"user",content:u}]}));
             " "$SYS" "$USR" "$TOK"
-
-            HTTP_CODE=$(curl -s -w "%{http_code}" \
-              -X POST https://api.anthropic.com/v1/messages \
+            HTTP=$(curl -s -w "%{http_code}" -X POST https://api.anthropic.com/v1/messages \
               -H "x-api-key: $ANTHROPIC_API_KEY" \
               -H "anthropic-version: 2023-06-01" \
               -H "content-type: application/json" \
-              --data-binary @/tmp/payload.json \
-              -o /tmp/api_resp.json)
-
-            echo "HTTP $HTTP_CODE -> $OUTFILE"
-            if [ "$HTTP_CODE" != "200" ]; then
-              echo "ERROR:"; cat /tmp/api_resp.json; return 1
-            fi
-
+              --data-binary @/tmp/pl.json -o /tmp/resp.json)
+            echo "HTTP $HTTP -> $OUTFILE"
+            [ "$HTTP" = "200" ] || { echo "FAIL:"; cat /tmp/resp.json; return 1; }
             node -e "
-              const r = JSON.parse(require('fs').readFileSync('/tmp/api_resp.json','utf8'));
-              const t = r.content && r.content[0] ? r.content[0].text : '';
-              require('fs').writeFileSync(process.argv[1], t);
-              process.stderr.write('OK: '+t.length+' chars\\n');
+              const r=JSON.parse(require('fs').readFileSync('/tmp/resp.json','utf8'));
+              const t=r.content&&r.content[0]?r.content[0].text:'';
+              require('fs').writeFileSync(process.argv[1],t);
+              process.stderr.write('chars:'+t.length+'\\n');
             " "$OUTFILE"
           }
 
-          RESEARCHER=$(cat plugins/market-scout/agents/topic-researcher.md)
-          SCANNER=$(cat plugins/market-scout/agents/finland-opportunity-scanner.md)
-          ANALYZER=$(cat plugins/market-scout/agents/trend-analyzer.md)
-          COMPILER=$(cat plugins/market-scout/agents/report-compiler.md)
-          TOPICS_CONFIG=$(cat plugins/market-scout/config/topics.json)
+          R=$(cat plugins/market-scout/agents/topic-researcher.md)
+          SC=$(cat plugins/market-scout/agents/finland-opportunity-scanner.md)
+          AN=$(cat plugins/market-scout/agents/trend-analyzer.md)
+          CO=$(cat plugins/market-scout/agents/report-compiler.md)
+          TC=$(cat plugins/market-scout/config/topics.json)
 
-          TOPIC_IDS=$(node -e "
+          TIDS=$(node -e "
             const d=JSON.parse(require('fs').readFileSync('plugins/market-scout/config/topics.json','utf8'));
             const f='${{ inputs.topic }}';
             const ts=f?d.topics.filter(t=>t.id===f&&t.active):d.topics.filter(t=>t.active);
             console.log(ts.map(t=>t.id).join(' '));
           ")
-          echo "Topics: $TOPIC_IDS"
+          echo "Topics: $TIDS"
 
-          for TOPIC_ID in $TOPIC_IDS; do
-            echo "=== Research: $TOPIC_ID ==="
-            TOPIC_DATA=$(node -e "
+          for TID in $TIDS; do
+            echo "=== Research: $TID ==="
+            TD=$(node -e "
               const d=JSON.parse(require('fs').readFileSync('plugins/market-scout/config/topics.json','utf8'));
-              const t=d.topics.find(t=>t.id==='$TOPIC_ID');
-              console.log(JSON.stringify(t));
+              console.log(JSON.stringify(d.topics.find(t=>t.id==='$TID')));
             ")
-            call_claude \
-              "$RESEARCHER" \
-              "Research topic and return structured JSON. Topic: $TOPIC_DATA. Find latest news/launches last 48h. JSON only." \
-              "/tmp/market-scout-data/research-$TOPIC_ID.json" \
-              4096 \
-              || echo '{"topic":"'$TOPIC_ID'","findings":[],"error":"failed"}' > /tmp/market-scout-data/research-$TOPIC_ID.json
-            echo "Done: $TOPIC_ID"
+            call_claude "$R" "Research topic JSON only. Topic: $TD. Latest news 48h." "/tmp/market-scout-data/r-$TID.json" 4096 \
+              || echo '{"topic":"'$TID'","findings":[]}' > /tmp/market-scout-data/r-$TID.json
           done
 
           echo "=== Finland Scanner ==="
-          ALL_RESEARCH=$(cat /tmp/market-scout-data/research-*.json 2>/dev/null | tr '\n' ' ' || echo '[]')
-          call_claude \
-            "$SCANNER" \
-            "Find Finland market opportunities. Topics: $TOPICS_CONFIG. Research: $ALL_RESEARCH. Return structured JSON." \
-            "/tmp/market-scout-data/finland-opportunities.json" \
-            4096 \
-            || echo '{"opportunities":[],"error":"failed"}' > /tmp/market-scout-data/finland-opportunities.json
+          AR=$(cat /tmp/market-scout-data/r-*.json 2>/dev/null | tr '\n' ' ' || echo '[]')
+          call_claude "$SC" "Finland opportunities. Topics: $TC Research: $AR Return JSON." "/tmp/market-scout-data/finland.json" 4096 \
+            || echo '{"opportunities":[]}' > /tmp/market-scout-data/finland.json
 
           echo "=== Trend Analyzer ==="
-          ALL_DATA=$(cat /tmp/market-scout-data/*.json 2>/dev/null | tr '\n' ' ' || echo '{}')
-          call_claude \
-            "$ANALYZER" \
-            "Analyze trends. Data: $ALL_DATA. Return structured JSON." \
-            "/tmp/market-scout-data/trends.json" \
-            4096 \
-            || echo '{"hot_trends":[],"error":"failed"}' > /tmp/market-scout-data/trends.json
+          AD=$(cat /tmp/market-scout-data/*.json 2>/dev/null | tr '\n' ' ' || echo '{}')
+          call_claude "$AN" "Analyze trends. Data: $AD Return JSON." "/tmp/market-scout-data/trends.json" 4096 \
+            || echo '{"hot_trends":[]}' > /tmp/market-scout-data/trends.json
 
           echo "=== Compile Report ==="
-          ALL_DATA=$(cat /tmp/market-scout-data/*.json 2>/dev/null | tr '\n' ' ' || echo '{}')
-          CURRENT_DATE=$(TZ='Europe/Helsinki' date '+%Y-%m-%d %H:%M')
-          REPORT_FILE="reports/$(TZ='Europe/Helsinki' date '+%Y-%m-%d-%H%M').md"
-          call_claude \
-            "$COMPILER" \
-            "Compile market intelligence report. Finnish time: $CURRENT_DATE. Data: $ALL_DATA. Return complete markdown." \
-            "$REPORT_FILE" \
-            8192 \
-            || printf '# Market Scout Report\n\n**Date:** %s\n\n*Generation failed*\n' "$CURRENT_DATE" > "$REPORT_FILE"
+          AD=$(cat /tmp/market-scout-data/*.json 2>/dev/null | tr '\n' ' ' || echo '{}')
+          CD=$(TZ='Europe/Helsinki' date '+%Y-%m-%d %H:%M')
+          RF="reports/$(TZ='Europe/Helsinki' date '+%Y-%m-%d-%H%M').md"
+          call_claude "$CO" "Compile report. Time: $CD Data: $AD Return markdown." "$RF" 8192 \
+            || printf '# Market Scout Report\n\n**Date:** %s\n\n*Failed*\n' "$CD" > "$RF"
 
-          echo "report_file=$REPORT_FILE" >> $GITHUB_OUTPUT
-          echo "=== Preview (first 20 lines) ==="
-          head -20 "$REPORT_FILE"
+          echo "report_file=$RF" >> $GITHUB_OUTPUT
+          echo "=== Preview ==="
+          head -20 "$RF"
 
       - name: Push Report to Obsidian Vault
         run: |
-          git clone https://x-access-token:${{ secrets.VAULT_TOKEN }}@github.com/WebWelho/obsidian-vault.git /tmp/obsidian-vault
-          mkdir -p "/tmp/obsidian-vault/Market Scout"
-          REPORT_FILENAME=$(TZ='Europe/Helsinki' date '+%Y-%m-%d-%H%M').md
-          cp ${{ steps.scout.outputs.report_file }} "/tmp/obsidian-vault/Market Scout/${REPORT_FILENAME}"
-          cd /tmp/obsidian-vault
+          git clone https://x-access-token:${{ secrets.VAULT_TOKEN }}@github.com/WebWelho/obsidian-vault.git /tmp/vault
+          mkdir -p "/tmp/vault/Market Scout"
+          FN=$(TZ='Europe/Helsinki' date '+%Y-%m-%d-%H%M').md
+          cp ${{ steps.scout.outputs.report_file }} "/tmp/vault/Market Scout/$FN"
+          cd /tmp/vault
           git config user.email "market-scout@github-actions"
           git config user.name "Market Scout Bot"
           git add "Market Scout/"
-          git commit -m "market-scout: raportti ${REPORT_FILENAME}" || echo "No changes"
+          git commit -m "market-scout: raportti $FN" || echo "No changes"
           git push
 
       - name: Create GitHub Issue for High-Priority Opportunities
@@ -169,21 +132,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          HIGH_PRIORITY=$(cat /tmp/market-scout-data/finland-opportunities.json 2>/dev/null | \
+          HP=$(cat /tmp/market-scout-data/finland.json 2>/dev/null | \
             node -e "
               try{const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
               const h=(d.opportunities||[]).filter(o=>o.opportunity_score>=8);
               if(h.length>0)console.log(h.map(o=>'- **'+o.product_name+'** ('+o.opportunity_score+'/10): '+o.description).join('\\n'));}catch(e){}
             " 2>/dev/null || echo "")
-          if [ -n "$HIGH_PRIORITY" ]; then
+          if [ -n "$HP" ]; then
+            BODY=$(printf "## New High-Priority Finland Market Opportunities\n\n%s\n\n**Full report:** https://github.com/${{ github.repository }}/blob/main/${{ steps.scout.outputs.report_file }}\n\n*Generated by market-scout*" "$HP")
             gh issue create \
               --title "🔥 High-Priority Finland Opportunities — $(date '+%Y-%m-%d')" \
-              --body "## New High-Priority Finland Market Opportunities
-
-$HIGH_PRIORITY
-
-**Full report:** https://github.com/${{ github.repository }}/blob/main/${{ steps.scout.outputs.report_file }}
-
-*Generated by market-scout*" \
+              --body "$BODY" \
               --label "market-intel" || echo "Could not create issue"
           fi
