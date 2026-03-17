@@ -2,11 +2,10 @@ name: Market Scout — Automated Business Intelligence
 
 on:
   schedule:
-    # Finnish time (UTC+2): 08:00, 12:00, 16:00, 20:00
-    - cron: '0 6 * * *'   # 08:00
-    - cron: '0 10 * * *'  # 12:00
-    - cron: '0 14 * * *'  # 16:00
-    - cron: '0 18 * * *'  # 20:00
+    - cron: '0 6 * * *'
+    - cron: '0 10 * * *'
+    - cron: '0 14 * * *'
+    - cron: '0 18 * * *'
   workflow_dispatch:
     inputs:
       topic:
@@ -27,6 +26,9 @@ jobs:
   market-scout:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -38,215 +40,115 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Read topics configuration
-        id: config
+      - name: Run Market Scout
+        id: scout
         run: |
-          TOPIC_IDS=$(node -e "
-            const data = JSON.parse(require('fs').readFileSync('plugins/market-scout/config/topics.json', 'utf8'));
-            const topic = '${{ inputs.topic }}';
-            const topics = topic ? data.topics.filter(t => t.id === topic && t.active) : data.topics.filter(t => t.active);
-            console.log(topics.map(t => t.id).join(' '));
-          ")
-          echo "topic_ids=$TOPIC_IDS" >> $GITHUB_OUTPUT
-          echo "Topics to scan: $TOPIC_IDS"
+          set -e
+          mkdir -p /tmp/market-scout-data reports
 
-      - name: Run Topic Researchers
-        id: research
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          mkdir -p /tmp/market-scout-data
-
+          # call_claude: args are system_prompt user_msg output_file max_tokens
           call_claude() {
-            local SYSTEM_PROMPT="$1"
-            local USER_MSG="$2"
-            local OUT_FILE="$3"
+            local SYS="$1"
+            local USR="$2"
+            local OUTFILE="$3"
+            local TOK="${4:-4096}"
 
-            PAYLOAD=$(node -e "
-              const sys = process.env.SYS_PROMPT;
-              const usr = process.env.USR_MSG;
-              console.log(JSON.stringify({
-                model: 'claude-opus-4-5',
-                max_tokens: 4096,
+            # Write payload using node with args (avoids heredoc env issues)
+            node -e "
+              const sys = process.argv[1];
+              const usr = process.argv[2];
+              const tok = parseInt(process.argv[3]);
+              const payload = JSON.stringify({
+                model: "claude-opus-4-5",
+                max_tokens: tok,
                 system: sys,
-                messages: [{ role: 'user', content: usr }]
-              }));
-            " SYS_PROMPT="$SYSTEM_PROMPT" USR_MSG="$USER_MSG")
+                messages: [{ role: "user", content: usr }]
+              });
+              require('fs').writeFileSync('/tmp/payload.json', payload);
+            " "$SYS" "$USR" "$TOK"
 
-            HTTP_CODE=$(curl -s -o "$OUT_FILE" -w "%{http_code}" \
-              https://api.anthropic.com/v1/messages \
+            HTTP_CODE=$(curl -s -w "%{http_code}" \
+              -X POST https://api.anthropic.com/v1/messages \
               -H "x-api-key: $ANTHROPIC_API_KEY" \
               -H "anthropic-version: 2023-06-01" \
               -H "content-type: application/json" \
-              -d "$PAYLOAD")
+              --data-binary @/tmp/payload.json \
+              -o /tmp/api_resp.json)
 
-            echo "HTTP $HTTP_CODE for $OUT_FILE"
-
+            echo "HTTP $HTTP_CODE -> $OUTFILE"
             if [ "$HTTP_CODE" != "200" ]; then
-              echo "API call failed with HTTP $HTTP_CODE"
-              cat "$OUT_FILE"
-              return 1
+              echo "ERROR:"; cat /tmp/api_resp.json; return 1
             fi
 
-            # Extract text content from response
             node -e "
-              const resp = JSON.parse(require('fs').readFileSync('$OUT_FILE', 'utf8'));
-              const text = resp.content && resp.content[0] && resp.content[0].text ? resp.content[0].text : JSON.stringify(resp);
-              require('fs').writeFileSync('$OUT_FILE', text);
-            "
+              const r = JSON.parse(require('fs').readFileSync('/tmp/api_resp.json','utf8'));
+              const t = r.content && r.content[0] ? r.content[0].text : '';
+              require('fs').writeFileSync(process.argv[1], t);
+              process.stderr.write('OK: '+t.length+' chars\\n');
+            " "$OUTFILE"
           }
 
-          TOPIC_RESEARCHER=$(cat plugins/market-scout/agents/topic-researcher.md)
+          RESEARCHER=$(cat plugins/market-scout/agents/topic-researcher.md)
+          SCANNER=$(cat plugins/market-scout/agents/finland-opportunity-scanner.md)
+          ANALYZER=$(cat plugins/market-scout/agents/trend-analyzer.md)
+          COMPILER=$(cat plugins/market-scout/agents/report-compiler.md)
+          TOPICS_CONFIG=$(cat plugins/market-scout/config/topics.json)
 
-          for TOPIC_ID in ${{ steps.config.outputs.topic_ids }}; do
-            echo "Researching topic: $TOPIC_ID"
+          TOPIC_IDS=$(node -e "
+            const d=JSON.parse(require('fs').readFileSync('plugins/market-scout/config/topics.json','utf8'));
+            const f='${{ inputs.topic }}';
+            const ts=f?d.topics.filter(t=>t.id===f&&t.active):d.topics.filter(t=>t.active);
+            console.log(ts.map(t=>t.id).join(' '));
+          ")
+          echo "Topics: $TOPIC_IDS"
+
+          for TOPIC_ID in $TOPIC_IDS; do
+            echo "=== Research: $TOPIC_ID ==="
             TOPIC_DATA=$(node -e "
-              const data = JSON.parse(require('fs').readFileSync('plugins/market-scout/config/topics.json', 'utf8'));
-              const topic = data.topics.find(t => t.id === '$TOPIC_ID');
-              console.log(JSON.stringify(topic));
+              const d=JSON.parse(require('fs').readFileSync('plugins/market-scout/config/topics.json','utf8'));
+              const t=d.topics.find(t=>t.id==='$TOPIC_ID');
+              console.log(JSON.stringify(t));
             ")
-            call_claude "$TOPIC_RESEARCHER" \
-              "Research this topic and return structured JSON findings. Topic data: $TOPIC_DATA. Search for the latest news, product launches, and developments. Return valid JSON only." \
+            call_claude \
+              "$RESEARCHER" \
+              "Research topic and return structured JSON. Topic: $TOPIC_DATA. Find latest news/launches last 48h. JSON only." \
               "/tmp/market-scout-data/research-$TOPIC_ID.json" \
-              || echo '{"topic":"'$TOPIC_ID'","findings":[],"error":"Research failed"}' > "/tmp/market-scout-data/research-$TOPIC_ID.json"
-            echo "Research for $TOPIC_ID completed"
+              4096 \
+              || echo '{"topic":"'$TOPIC_ID'","findings":[],"error":"failed"}' > /tmp/market-scout-data/research-$TOPIC_ID.json
+            echo "Done: $TOPIC_ID"
           done
 
-      - name: Run Finland Opportunity Scanner
-        id: finland_scan
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          call_claude() {
-            local SYSTEM_PROMPT="$1"
-            local USER_MSG="$2"
-            local OUT_FILE="$3"
-            PAYLOAD=$(node -e "
-              const sys = process.env.SYS_PROMPT;
-              const usr = process.env.USR_MSG;
-              console.log(JSON.stringify({
-                model: 'claude-opus-4-5',
-                max_tokens: 4096,
-                system: sys,
-                messages: [{ role: 'user', content: usr }]
-              }));
-            " SYS_PROMPT="$SYSTEM_PROMPT" USR_MSG="$USER_MSG")
-            HTTP_CODE=$(curl -s -o "$OUT_FILE" -w "%{http_code}" \
-              https://api.anthropic.com/v1/messages \
-              -H "x-api-key: $ANTHROPIC_API_KEY" \
-              -H "anthropic-version: 2023-06-01" \
-              -H "content-type: application/json" \
-              -d "$PAYLOAD")
-            echo "HTTP $HTTP_CODE for $OUT_FILE"
-            if [ "$HTTP_CODE" != "200" ]; then cat "$OUT_FILE"; return 1; fi
-            node -e "
-              const resp = JSON.parse(require('fs').readFileSync('$OUT_FILE', 'utf8'));
-              const text = resp.content && resp.content[0] ? resp.content[0].text : JSON.stringify(resp);
-              require('fs').writeFileSync('$OUT_FILE', text);
-            "
-          }
-
+          echo "=== Finland Scanner ==="
           ALL_RESEARCH=$(cat /tmp/market-scout-data/research-*.json 2>/dev/null | tr '\n' ' ' || echo '[]')
-          TOPICS_CONFIG=$(cat plugins/market-scout/config/topics.json)
-          SCANNER=$(cat plugins/market-scout/agents/finland-opportunity-scanner.md)
-
-          call_claude "$SCANNER" \
-            "Analyze these topic areas for Finland market opportunities. Topics config: $TOPICS_CONFIG. Recent research: $ALL_RESEARCH. Return structured JSON." \
+          call_claude \
+            "$SCANNER" \
+            "Find Finland market opportunities. Topics: $TOPICS_CONFIG. Research: $ALL_RESEARCH. Return structured JSON." \
             "/tmp/market-scout-data/finland-opportunities.json" \
-            || echo '{"opportunities":[],"error":"Scan failed"}' > /tmp/market-scout-data/finland-opportunities.json
-          echo "Finland scan completed"
+            4096 \
+            || echo '{"opportunities":[],"error":"failed"}' > /tmp/market-scout-data/finland-opportunities.json
 
-      - name: Run Trend Analyzer
-        id: trends
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          call_claude() {
-            local SYSTEM_PROMPT="$1"
-            local USER_MSG="$2"
-            local OUT_FILE="$3"
-            PAYLOAD=$(node -e "
-              const sys = process.env.SYS_PROMPT;
-              const usr = process.env.USR_MSG;
-              console.log(JSON.stringify({
-                model: 'claude-opus-4-5',
-                max_tokens: 4096,
-                system: sys,
-                messages: [{ role: 'user', content: usr }]
-              }));
-            " SYS_PROMPT="$SYSTEM_PROMPT" USR_MSG="$USER_MSG")
-            HTTP_CODE=$(curl -s -o "$OUT_FILE" -w "%{http_code}" \
-              https://api.anthropic.com/v1/messages \
-              -H "x-api-key: $ANTHROPIC_API_KEY" \
-              -H "anthropic-version: 2023-06-01" \
-              -H "content-type: application/json" \
-              -d "$PAYLOAD")
-            echo "HTTP $HTTP_CODE for $OUT_FILE"
-            if [ "$HTTP_CODE" != "200" ]; then cat "$OUT_FILE"; return 1; fi
-            node -e "
-              const resp = JSON.parse(require('fs').readFileSync('$OUT_FILE', 'utf8'));
-              const text = resp.content && resp.content[0] ? resp.content[0].text : JSON.stringify(resp);
-              require('fs').writeFileSync('$OUT_FILE', text);
-            "
-          }
-
+          echo "=== Trend Analyzer ==="
           ALL_DATA=$(cat /tmp/market-scout-data/*.json 2>/dev/null | tr '\n' ' ' || echo '{}')
-          ANALYZER=$(cat plugins/market-scout/agents/trend-analyzer.md)
-
-          call_claude "$ANALYZER" \
-            "Analyze these research findings for trends and patterns. Data: $ALL_DATA. Return structured JSON." \
+          call_claude \
+            "$ANALYZER" \
+            "Analyze trends. Data: $ALL_DATA. Return structured JSON." \
             "/tmp/market-scout-data/trends.json" \
-            || echo '{"hot_trends":[],"error":"Analysis failed"}' > /tmp/market-scout-data/trends.json
-          echo "Trend analysis completed"
+            4096 \
+            || echo '{"hot_trends":[],"error":"failed"}' > /tmp/market-scout-data/trends.json
 
-      - name: Compile Report
-        id: report
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          call_claude() {
-            local SYSTEM_PROMPT="$1"
-            local USER_MSG="$2"
-            local OUT_FILE="$3"
-            PAYLOAD=$(node -e "
-              const sys = process.env.SYS_PROMPT;
-              const usr = process.env.USR_MSG;
-              console.log(JSON.stringify({
-                model: 'claude-opus-4-5',
-                max_tokens: 8192,
-                system: sys,
-                messages: [{ role: 'user', content: usr }]
-              }));
-            " SYS_PROMPT="$SYSTEM_PROMPT" USR_MSG="$USER_MSG")
-            HTTP_CODE=$(curl -s -o "$OUT_FILE" -w "%{http_code}" \
-              https://api.anthropic.com/v1/messages \
-              -H "x-api-key: $ANTHROPIC_API_KEY" \
-              -H "anthropic-version: 2023-06-01" \
-              -H "content-type: application/json" \
-              -d "$PAYLOAD")
-            echo "HTTP $HTTP_CODE for $OUT_FILE"
-            if [ "$HTTP_CODE" != "200" ]; then cat "$OUT_FILE"; return 1; fi
-            node -e "
-              const resp = JSON.parse(require('fs').readFileSync('$OUT_FILE', 'utf8'));
-              const text = resp.content && resp.content[0] ? resp.content[0].text : JSON.stringify(resp);
-              require('fs').writeFileSync('$OUT_FILE', text);
-            "
-          }
-
+          echo "=== Compile Report ==="
           ALL_DATA=$(cat /tmp/market-scout-data/*.json 2>/dev/null | tr '\n' ' ' || echo '{}')
           CURRENT_DATE=$(TZ='Europe/Helsinki' date '+%Y-%m-%d %H:%M')
           REPORT_FILE="reports/$(TZ='Europe/Helsinki' date '+%Y-%m-%d-%H%M').md"
-          mkdir -p reports
-          COMPILER=$(cat plugins/market-scout/agents/report-compiler.md)
-
-          call_claude "$COMPILER" \
-            "Compile a market intelligence report. Current Finnish time: $CURRENT_DATE. Data: $ALL_DATA. Return complete markdown report." \
+          call_claude \
+            "$COMPILER" \
+            "Compile market intelligence report. Finnish time: $CURRENT_DATE. Data: $ALL_DATA. Return complete markdown." \
             "$REPORT_FILE" \
-            || printf '# Market Scout Report\n\n**Date:** %s\n\n*Report generation failed — check API key and logs.*\n' "$CURRENT_DATE" > "$REPORT_FILE"
+            8192 \
+            || printf '# Market Scout Report\n\n**Date:** %s\n\n*Generation failed*\n' "$CURRENT_DATE" > "$REPORT_FILE"
 
           echo "report_file=$REPORT_FILE" >> $GITHUB_OUTPUT
-          echo "Report saved to: $REPORT_FILE"
-          echo "--- Report preview (first 20 lines) ---"
+          echo "=== Preview (first 20 lines) ==="
           head -20 "$REPORT_FILE"
 
       - name: Push Report to Obsidian Vault
@@ -254,12 +156,12 @@ jobs:
           git clone https://x-access-token:${{ secrets.VAULT_TOKEN }}@github.com/WebWelho/obsidian-vault.git /tmp/obsidian-vault
           mkdir -p "/tmp/obsidian-vault/Market Scout"
           REPORT_FILENAME=$(TZ='Europe/Helsinki' date '+%Y-%m-%d-%H%M').md
-          cp ${{ steps.report.outputs.report_file }} "/tmp/obsidian-vault/Market Scout/${REPORT_FILENAME}"
+          cp ${{ steps.scout.outputs.report_file }} "/tmp/obsidian-vault/Market Scout/${REPORT_FILENAME}"
           cd /tmp/obsidian-vault
           git config user.email "market-scout@github-actions"
           git config user.name "Market Scout Bot"
           git add "Market Scout/"
-          git commit -m "market-scout: raportti ${REPORT_FILENAME}" || echo "No changes to commit"
+          git commit -m "market-scout: raportti ${REPORT_FILENAME}" || echo "No changes"
           git push
 
       - name: Create GitHub Issue for High-Priority Opportunities
@@ -269,25 +171,19 @@ jobs:
         run: |
           HIGH_PRIORITY=$(cat /tmp/market-scout-data/finland-opportunities.json 2>/dev/null | \
             node -e "
-              try {
-                const raw = require('fs').readFileSync('/dev/stdin', 'utf8');
-                const data = JSON.parse(raw);
-                const high = (data.opportunities || []).filter(o => o.opportunity_score >= 8);
-                if (high.length > 0) {
-                  console.log(high.map(o => '- **' + o.product_name + '** (' + o.opportunity_score + '/10): ' + o.description).join('\n'));
-                }
-              } catch(e) {}
+              try{const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+              const h=(d.opportunities||[]).filter(o=>o.opportunity_score>=8);
+              if(h.length>0)console.log(h.map(o=>'- **'+o.product_name+'** ('+o.opportunity_score+'/10): '+o.description).join('\\n'));}catch(e){}
             " 2>/dev/null || echo "")
           if [ -n "$HIGH_PRIORITY" ]; then
             gh issue create \
               --title "🔥 High-Priority Finland Opportunities — $(date '+%Y-%m-%d')" \
               --body "## New High-Priority Finland Market Opportunities
 
-          $HIGH_PRIORITY
+$HIGH_PRIORITY
 
-          **Full report:** https://github.com/${{ github.repository }}/blob/main/${{ steps.report.outputs.report_file }}
+**Full report:** https://github.com/${{ github.repository }}/blob/main/${{ steps.scout.outputs.report_file }}
 
-          *Generated by market-scout workflow*" \
-              --label "market-intel" \
-              || echo "Could not create issue"
+*Generated by market-scout*" \
+              --label "market-intel" || echo "Could not create issue"
           fi
