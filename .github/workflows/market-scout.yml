@@ -27,7 +27,6 @@ jobs:
   market-scout:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -45,13 +44,10 @@ jobs:
       - name: Read topics configuration
         id: config
         run: |
-          # Extract topic IDs for parallel processing
           TOPIC_IDS=$(node -e "
             const data = JSON.parse(require('fs').readFileSync('plugins/market-scout/config/topics.json', 'utf8'));
             const topic = '${{ inputs.topic }}';
-            const topics = topic
-              ? data.topics.filter(t => t.id === topic && t.active)
-              : data.topics.filter(t => t.active);
+            const topics = topic ? data.topics.filter(t => t.id === topic && t.active) : data.topics.filter(t => t.active);
             console.log(topics.map(t => t.id).join(' '));
           ")
           echo "topic_ids=$TOPIC_IDS" >> $GITHUB_OUTPUT
@@ -63,22 +59,19 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           mkdir -p /tmp/market-scout-data
-
-          # Run topic research for each topic
           for TOPIC_ID in ${{ steps.config.outputs.topic_ids }}; do
             echo "Researching topic: $TOPIC_ID"
-
-            TOPIC_DATA=$(cat plugins/market-scout/config/topics.json | node -e "
-              const data = JSON.parse(require('fs').readFileSync('/dev/stdin', 'utf8'));
+            TOPIC_DATA=$(node -e "
+              const data = JSON.parse(require('fs').readFileSync('plugins/market-scout/config/topics.json', 'utf8'));
               const topic = data.topics.find(t => t.id === '$TOPIC_ID');
               console.log(JSON.stringify(topic));
             ")
-
             claude --print --dangerously-skip-permissions \
               --system-prompt "$(cat plugins/market-scout/agents/topic-researcher.md)" \
-              "Research this topic and return structured JSON findings. Topic data: $TOPIC_DATA. Search for the latest news, product launches, and developments in this area from the last 48 hours. Return valid JSON only." \
-              > /tmp/market-scout-data/research-$TOPIC_ID.json 2>&1 || echo '{"topic":"'$TOPIC_ID'","findings":[],"error":"Research failed"}' > /tmp/market-scout-data/research-$TOPIC_ID.json
-
+              "Research this topic and return structured JSON findings. Topic data: $TOPIC_DATA. Return valid JSON only." \
+              > /tmp/market-scout-data/research-$TOPIC_ID.json 2>&1 \
+              || echo '{"topic":"'$TOPIC_ID'","findings":[],"error":"Research failed"}' \
+                > /tmp/market-scout-data/research-$TOPIC_ID.json
             echo "Research for $TOPIC_ID completed"
           done
 
@@ -87,15 +80,14 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          # Combine all research data for context
           ALL_RESEARCH=$(cat /tmp/market-scout-data/research-*.json 2>/dev/null | tr '\n' ' ' || echo '[]')
           TOPICS_CONFIG=$(cat plugins/market-scout/config/topics.json)
-
           claude --print --dangerously-skip-permissions \
             --system-prompt "$(cat plugins/market-scout/agents/finland-opportunity-scanner.md)" \
             "Analyze these topic areas for Finland market opportunities. Topics config: $TOPICS_CONFIG. Recent research context: $ALL_RESEARCH. Find international products/tools not yet in Finland and return structured JSON." \
-            > /tmp/market-scout-data/finland-opportunities.json 2>&1 || echo '{"opportunities":[],"error":"Scan failed"}' > /tmp/market-scout-data/finland-opportunities.json
-
+            > /tmp/market-scout-data/finland-opportunities.json 2>&1 \
+            || echo '{"opportunities":[],"error":"Scan failed"}' \
+              > /tmp/market-scout-data/finland-opportunities.json
           echo "Finland opportunity scan completed"
 
       - name: Run Trend Analyzer
@@ -104,12 +96,12 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           ALL_DATA=$(cat /tmp/market-scout-data/*.json 2>/dev/null | tr '\n' ' ' || echo '{}')
-
           claude --print --dangerously-skip-permissions \
             --system-prompt "$(cat plugins/market-scout/agents/trend-analyzer.md)" \
             "Analyze these research findings for trends and patterns. Data: $ALL_DATA. Return structured JSON trend analysis." \
-            > /tmp/market-scout-data/trends.json 2>&1 || echo '{"hot_trends":[],"error":"Analysis failed"}' > /tmp/market-scout-data/trends.json
-
+            > /tmp/market-scout-data/trends.json 2>&1 \
+            || echo '{"hot_trends":[],"error":"Analysis failed"}' \
+              > /tmp/market-scout-data/trends.json
           echo "Trend analysis completed"
 
       - name: Compile Report
@@ -120,62 +112,33 @@ jobs:
           ALL_DATA=$(cat /tmp/market-scout-data/*.json 2>/dev/null | tr '\n' ' ' || echo '{}')
           CURRENT_DATE=$(TZ='Europe/Helsinki' date '+%Y-%m-%d %H:%M')
           REPORT_FILE="reports/$(TZ='Europe/Helsinki' date '+%Y-%m-%d-%H%M').md"
-
           mkdir -p reports
           claude --print --dangerously-skip-permissions \
             --system-prompt "$(cat plugins/market-scout/agents/report-compiler.md)" \
             "Compile a market intelligence report from this data. Current Finnish time: $CURRENT_DATE. Data: $ALL_DATA. Return a complete markdown report." \
-            > "$REPORT_FILE" 2>&1
+            > "$REPORT_FILE" 2>&1 \
+            || printf '# Market Scout Report\n\n*Report generation failed*\n' > "$REPORT_FILE"
           echo "report_file=$REPORT_FILE" >> $GITHUB_OUTPUT
           echo "Report saved to: $REPORT_FILE"
 
       - name: Push Report to Obsidian Vault
         run: |
           git clone https://x-access-token:${{ secrets.VAULT_TOKEN }}@github.com/WebWelho/obsidian-vault.git /tmp/obsidian-vault
-
-          mkdir -p /tmp/obsidian-vault/Market\ Scout
-
-          REPORT_DATE=$(TZ='Europe/Helsinki' date '+%Y-%m-%d')
-          cp ${{ steps.report.outputs.report_file }} "/tmp/obsidian-vault/Market Scout/${REPORT_DATE}.md"
-
+          mkdir -p "/tmp/obsidian-vault/Market Scout"
+          REPORT_FILENAME=$(TZ='Europe/Helsinki' date '+%Y-%m-%d-%H%M').md
+          cp ${{ steps.report.outputs.report_file }} "/tmp/obsidian-vault/Market Scout/${REPORT_FILENAME}"
           cd /tmp/obsidian-vault
           git config user.email "market-scout@github-actions"
           git config user.name "Market Scout Bot"
           git add "Market Scout/"
-          git commit -m "market-scout: raportti ${REPORT_DATE}" || echo "No changes to commit"
+          git commit -m "market-scout: raportti ${REPORT_FILENAME}" || echo "No changes to commit"
           git push
-
-      - name: Send Email Digest
-        if: ${{ !cancelled() }}
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          secure: false
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "Market Scout Report — ${{ steps.report.outputs.report_file }}"
-          to: ${{ secrets.MAIL_RECIPIENT }}
-          from: Market Scout <${{ secrets.MAIL_USERNAME }}>
-          body: |
-            Your automated market intelligence scan is complete.
-
-            Report: ${{ steps.report.outputs.report_file }}
-
-            View full report in your repository:
-            https://github.com/${{ github.repository }}/blob/main/${{ steps.report.outputs.report_file }}
-
-            ---
-            Market Scout | Automated Business Intelligence
-          ignore_cert: true
-        continue-on-error: true
 
       - name: Create GitHub Issue for High-Priority Opportunities
         if: success()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Check if there are high-priority opportunities (score >= 8)
           HIGH_PRIORITY=$(cat /tmp/market-scout-data/finland-opportunities.json 2>/dev/null | \
             node -e "
               try {
@@ -186,7 +149,6 @@ jobs:
                 }
               } catch(e) { /* no output */ }
             " 2>/dev/null || echo "")
-
           if [ -n "$HIGH_PRIORITY" ]; then
             gh issue create \
               --title "🔥 High-Priority Finland Opportunities — $(date '+%Y-%m-%d')" \
