@@ -51,8 +51,8 @@ jobs:
             node -e "
               const s=process.argv[1],u=process.argv[2],t=parseInt(process.argv[3]);
               require('fs').writeFileSync('/tmp/pl.json',JSON.stringify({
-                model:"claude-opus-4-5",max_tokens:t,system:s,
-                messages:[{role:"user",content:u}]}));
+                model:'claude-opus-4-5',max_tokens:t,system:s,
+                messages:[{role:'user',content:u}]}));
             " "$SYS" "$USR" "$TOK"
             HTTP=$(curl -s -w "%{http_code}" -X POST https://api.anthropic.com/v1/messages \
               -H "x-api-key: $ANTHROPIC_API_KEY" \
